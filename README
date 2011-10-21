@@ -1,0 +1,48 @@
+##########
+# Author # 
+##########
+Matt Johnson <matt.johnson@email.wsu.edu>
+
+###############
+# Description #
+###############
+This program implements a scapegoat tree as described in the following paper:
+http://cg.scs.carleton.ca/~morin/teaching/5408/refs/gr93.pdf
+
+Input to the program is a file called tree.txt. You can also specify a different
+file on the command line. The first line of the file must be:
+    BuildTree alpha key
+where .5 <= alpha < 1, and key is an integer. Each line of the rest of the file
+must contain one of the following commands:
+    Insert key - inserts the integer key into the tree
+    Search key - finds the specified key in the tree if it exists or gives an
+                 error message 
+    Delete key - delete the specified key from the tree
+    Print - prints the tree structure in *pre-order* (i.e. the root is the first
+            node displayed)
+    Done - exits the program
+key must be a unique integer.
+
+################
+# How to Build #
+################
+No installation is required. The program runs through the python interrepter.
+
+##############
+# How to Use #
+##############
+Without arguments, the program assumes there is a file called tree.txt in the
+current working directory, and uses that for input:
+python scapegoat.py
+
+With an argument, the program uses it as the input file;
+python scapegoat.py input_file.txt
+
+#########
+# Files #
+#########
+delete.txt - Sample input file with inserts and deletes
+insert.txt - Sample input file with inserts
+README - This file
+scapegoat.py - Python implementation of a scapegoat tree
+tree.txt - Large sample input file for inserts

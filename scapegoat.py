@@ -1,4 +1,3 @@
-import re
 import math
 class Node():
     def __init__(self, key):
@@ -52,6 +51,7 @@ class ScapeGoatTree():
                 return None
             mid = int(math.ceil(start + (end - start) / 2.0))
             node = Node(nodes[mid].key)
+            #node = nodes[mid]
             node.left = buildTreeFromSortedList(nodes, start, mid-1)
             node.right = buildTreeFromSortedList(nodes, mid+1, end)
             return node
@@ -113,12 +113,33 @@ class ScapeGoatTree():
         else:
             parent.right = successor
 
+        self.size -= 1
+        if self.size < self.a * self.max_size:
+            #print "Rebuilding the whole tree"
+            self.root = self.myRebuildTree(self.root, self.size)
+            self.max_size = self.size
+
+    def search(self, key):
+        x = self.root
+        while x != None:
+            if x.key > key:
+                x = x.left
+            elif x.key < key:
+                x = x.right
+            else:
+                return x;
+
+        return None
+
     def insert(self, key):
         z = Node(key)
         y = None
         x = self.root
+        # keep track of the depth and parents (so we don't have to recalculate
+        # them)
         depth = 0
         parents = []
+        # find where to place the node
         while x != None:
             parents.insert(0,x)
             y = x
@@ -126,7 +147,6 @@ class ScapeGoatTree():
                 x = x.left
             else:
                 x = x.right
-
             depth += 1
 
         if y == None:
@@ -139,82 +159,53 @@ class ScapeGoatTree():
         self.size += 1
         self.max_size = max(self.size, self.max_size)
         
+        # Need to do rebuild?
         if self.isDeep(depth):
-            print "BEFORE"
-            self.printTree()
-            print "IT'S DEEP"
             scapegoat = None
             parents.insert(0,z)
-            print "Parents", parents
             sizes = [0]*len(parents)
             I = 0
+            # find the highest scapegoat on the tree
             for i in range(1, len(parents)):
                 sizes[i] = sizes[i-1] + self.sizeOf(self.brotherOf(parents[i-1], parents[i])) + 1
                 if not self.isAWeightBalanced(parents[i], sizes[i]+1):
                     scapegoat = parents[i]
                     I = i
-            print "Node %d is not weight balanced and could be a scapegoat" % (parents[I].key)
+                    #print "When inserting %d Node %d is not weight balanced and could be a scapegoat" % (key, parents[I].key)
             
-            print "found scapegoat, it's = %d, with size %d" % (scapegoat.key, sizes[I])
-            #tmp = self.rebuildTree(sizes[i], scapegoat)
-            #tmp = self.rebuildTree(sizes[I]+1, scapegoat)
             tmp = self.myRebuildTree(scapegoat, sizes[I]+1)
-            print "New list is:"
-            self.preOrder(tmp)
-            print "/"
             
             scapegoat.left = tmp.left
             scapegoat.right = tmp.right
             scapegoat.key = tmp.key
-            print "AFTER"
-            self.printTree()
-            return
             
     def isAWeightBalanced(self, x, size_of_x):
         a = self.sizeOf(x.left) <= (self.a * size_of_x)
         b = self.sizeOf(x.right) <= (self.a * size_of_x)
         return a and b
 
-    def flatten(self, root, head):
-        if root == None:
-            return head
-        root.right = self.flatten(root.right, head)
-        return self.flatten(root.left, root)
+    # these procedures are from the paper and do not work
+    #def flatten(self, root, head):
+    #    if root == None:
+    #        return head
+    #    root.right = self.flatten(root.right, head)
+    #    return self.flatten(root.left, root)
 
     #def buildTree(self, size, head):
     #    if size == 1:
     #        return head
     #    elif size == 2:
-    #        head.right.left = head
+    #        (head.right).left = head
     #        return head.right
     #    root = (self.buildTree(math.floor((size-1)/2.0), head)).right
     #    last = self.buildTree(math.floor((size-1)/2.0), root.right)
     #    root.left = head
     #    return last
-    def buildTree(self, n, x):
-        if n == 0:
-            x.left = None
-            return x
-        r = self.buildTree(math.ceil((n-1)/2.0),x)
-        s = self.buildTree(math.floor((n-1)/2.0), r.right)
-        r.right = s.left
-        s.left = r
-        return s
 
-    #def rebuildTree(self, size, scapegoat, parents):
+    #def rebuildTree(self, scapegoat, size):
     #    head = self.flatten(scapegoat, None)
     #    self.buildTree(size, head)
-    #    print "HERE"
-    #    while head.parent != None:
-    #        head = head.parent
-    #    head = parents[-1]
     #    return head
-
-    def rebuildTree(self, n, scapegoat):
-        w = Node(-1)
-        z = self.flatten(scapegoat, w)
-        self.buildTree(n, z)
-        return w.left
 
     def preOrder(self, x):
         if x != None:
@@ -226,8 +217,16 @@ class ScapeGoatTree():
         self.preOrder(self.root)
 
 
-def main():
-    f = open('tree.txt', 'r')
+if __name__ == '__main__':
+    import sys
+    import re
+    # Use tree.txt or command line for file
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+    else:
+        filename = 'tree.txt'
+
+    f = open(filename, 'r')
     t = None
     for line in f.readlines():
         line = re.split(r'\s+', line) 
@@ -237,17 +236,19 @@ def main():
             t.insert(int(line[2]))
         elif cmd == "Insert":
             t.insert(int(line[1]))
+        elif cmd == "Print":
+            t.printTree()
+        elif cmd == "Delete":
+            t.delete(int(line[1]))
+        elif cmd == "Done":
+            print "Exiting"
+            exit(0)
+        elif cmd == "Search":
+            val = t.search(int(line[1]))
+            if val != None:
+                print "Found %d" % (val.key)
+            else:
+                print "Error: Key %d not found" % (int(line[1]))
+        else:
+            print "Error: Command not recognized"
 
-
-
-
-main()
-#t = ScapeGoatTree(0.57)
-##nums = [2,1,6,5,4,3,15,12,9,7,11,10,13,14, 15,16,17,18,8]
-##nums = [5,3,7,6,8,9]
-#nums = [8,1,13,10,20,19,22, 29]
-#for e in nums:
-#    t.insert(e)
-##print "----------------"
-##t.delete(13)
-#t.printTree()

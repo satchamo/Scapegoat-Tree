@@ -1,0 +1,13 @@
+BuildTree .57 5
+Insert 1
+Insert 13
+Insert 10
+Insert 19
+Insert 9
+Insert 16
+Insert 22
+Delete 9
+Delete 10
+Delete 16
+Delete 1 # triggers rebuild
+Print # Tree should be: 19,13,5,22 (preorder walk) 
