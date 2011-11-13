@@ -100,6 +100,7 @@ class ScapeGoatTree():
                 successor.left = node.left
             # complicated case
             else:
+                print "finding successor"
                 successor.left = node.left
                 tmp = successor.right
                 successor.right = node.right
@@ -107,7 +108,7 @@ class ScapeGoatTree():
 
         # Replace the node
         if parent == None:
-            self.root = None
+            self.root = successor
         elif is_left_child:
             parent.left = successor
         else:
